@@ -2,7 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import {v4 as uuidv4} from 'uuid';
 import session from 'express-session';
-import moment from 'moment-timezone'
+import moment from 'moment-timezone';
+import os from 'os';
 
 const app = express();
 
@@ -58,13 +59,35 @@ app.get('/estado-sesion', (req,res)=>{
         // Convertimos las fechas al huso horario de CDMX
         const inicioCDMX = moment(inicio).tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss')
         const ultimoAccesoCDMX = moment(ultimoAcceso).tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss')
+
+        // Obtener la IP del cliente
+        const ipCliente = req.ip;
+
+        // Obtener la IP y dirección MAC del servidor
+        const interfaces = os.networkInterfaces();
+        let ipServidor = '';
+        let macServidor = '';
+
+        for (const interfaceName in interfaces) {
+            for (const interfaceDetails of interfaces[interfaceName]) {
+                if (interfaceDetails.family === 'IPv4' && !interfaceDetails.internal) {
+                    ipServidor = interfaceDetails.address;
+                    macServidor = interfaceDetails.mac;
+                    break;
+                }
+            }
+        }
+
         res.json({
             mensaje: 'Estado de la sesión',
             sesionTD: req.sessionID,
             uuid: req.session.uuid,  //Aqui se solicta el uui generado en el endpoint de iniciar sesion
             inicio: inicioCDMX,
             ultimoAcceso: ultimoAccesoCDMX,
-            antiguedad: `${horas} horas, ${minutos} minutos, ${segundos} segundos`
+            antiguedad: `${horas} horas, ${minutos} minutos, ${segundos} segundos`,
+            ipCliente: ipCliente, // Dirección IP del cliente
+            ipServidor: ipServidor, // Dirección IP del servidor
+            macServidor: macServidor, // Dirección MAC del servidor
         })
     } else {
         res.send('No hay una sesión activa')
@@ -84,6 +107,7 @@ app.get('/cerrar-sesion', (req,res)=>{
         res.send('No hay una sesión activa para cerrar.')
     }
 })
+
 
 const PORT = 3000;
 app.listen(PORT,()=>{
