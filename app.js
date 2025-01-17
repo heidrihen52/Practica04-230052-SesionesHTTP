@@ -6,6 +6,7 @@ import moment from 'moment-timezone'
 
 const app = express();
 
+
 // Configuración del middleware de sesiones
 
 app.use(
@@ -22,6 +23,7 @@ app.get('/iniciar-sesion',(req,res)=>{
     if (!req.session.inicio){
         req.session.inicio=new Date();
         req.session.ultimoAcceso=new Date();
+        req.session.uuid=uuidv4(); //al iniciar la sesión se crea un nuevo uuid, el cual se mantiene hasta que se cierre la sesión
         res.send('Sesión Iniciada.');
     } else {
         res.send('La sesión ya está activa.');
@@ -51,8 +53,7 @@ app.get('/estado-sesion', (req,res)=>{
         const minutos = Math.floor((antiguedadMs%(1000*60*60))/(1000*60));
         const segundos = Math.floor((antiguedadMs%(1000*60))/1000);
         
-        //Crear uuid unico
-        const uuid = uuidv4();
+        
 
         // Convertimos las fechas al huso horario de CDMX
         const inicioCDMX = moment(inicio).tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss')
@@ -60,9 +61,9 @@ app.get('/estado-sesion', (req,res)=>{
         res.json({
             mensaje: 'Estado de la sesión',
             sesionTD: req.sessionID,
+            uuid: req.session.uuid,  //Aqui se solicta el uui generado en el endpoint de iniciar sesion
             inicio: inicioCDMX,
             ultimoAcceso: ultimoAccesoCDMX,
-            UUID: uuid,
             antiguedad: `${horas} horas, ${minutos} minutos, ${segundos} segundos`
         })
     } else {
