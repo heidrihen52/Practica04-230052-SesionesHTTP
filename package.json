@@ -20,8 +20,10 @@
   "homepage": "https://github.com/heidrihen52/Practica04-230052-SesionesHTTP#readme",
   "dependencies": {
     "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "getmac": "^6.6.0",
     "macaddress": "^0.5.3",
     "moment-timezone": "^0.5.46",
     "mongoose": "^8.9.5",
