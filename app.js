@@ -6,31 +6,20 @@ import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 import os from 'os';
 
-
-
  const app= express();
  const PORT = 3000;
 
-
  app.use(cors({
-    origin: 'http://localhost:3000', // Cambia esto al dominio permitido
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
-    credentials: true, // Permite el uso de cookies y credenciales
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    credentials: true, 
     }));
-
-//10.10.60.21 -Paco GG
-//10.10.60.24 -Charly
-//10.10.60.10 -Giovani
 
  app.use(express.json())
 
  app.use(express.urlencoded({extended:true}))
  
- const sessions = {}; //sirve para que se almacene las sesiones
-
-
-
- //configuraxion de la sesiones
+ const sessions = {}; 
 
  app.use(
         session({
@@ -42,9 +31,6 @@ import os from 'os';
 
         })
  )
-
-
-
  const getClientIp = (req) => {
     const ip =
         req.headers["x-forwarded-for"] ||
@@ -67,12 +53,6 @@ const getServerNetworkInfo = () => {
     return { serverIP: "0.0.0.0", serverMac: "00:00:00:00:00:00" };
 };
 
-
-
-
-
-// Login endpoint
-
 app.post("/login", (req,res)=> {
     
     const {email, nickname , macAddress} = req.body;
@@ -81,12 +61,9 @@ app.post("/login", (req,res)=> {
         return res.status(400).json({ message: "Se esperan campos requeridos"});
     }
 
-
     const sessionID= uuidv4();
     const now = moment().tz('America/Mexico_City'); 
 
-
-    
     sessions[sessionID]={
         sessionID,
         email,
@@ -100,9 +77,6 @@ app.post("/login", (req,res)=> {
 
     };
 
-    // req.session[sessionID] = sessionData;
-    // activeSessions[sessionID] = sessionData; //Guardar sesion en el almacenamiento de sesiones
-
     res.status(200).json({
     message:"Se ha logeado de manera exitosa",
     sessionID,
@@ -115,45 +89,32 @@ app.post("/login", (req,res)=> {
 // Logout endpoint
 app.post("/logout", (req, res) => {
     const { sessionID } = req.body;
-
-    // Verificar que se proporcione un sessionID válido
     if (!sessionID || !sessions[sessionID]) {
         return res.status(404).json({
             message: "No se ha encontrado una sesión activa."
         });
     }
-
-    // Eliminar la sesión del almacenamiento en memoria
     delete sessions[sessionID];
-
-    // Intentar destruir la sesión activa
     req.session.destroy((err) => {
         if (err) {
             return res.status(500).json({
                 message: "Error al cerrar la sesión."
             });
         }
-
-        // Confirmar el cierre exitoso de la sesión
         res.status(200).json({
             message: "Sesión cerrada exitosamente."
         });
     });
 });
 
-// Actualización de la sesión
 app.post("/update", (req, res) => {
     const { sessionID, email, nickname } = req.body;
 
     if (!sessionID || !sessions[sessionID]) {
         return res.status(404).json({ message: "No existe una sesión activa" });
     }
-
-    // Actualizar los datos de la sesión si se proporcionan
     if (email) sessions[sessionID].email = email;
     if (nickname) sessions[sessionID].nickname = nickname;
-
-    // Reiniciar el tiempo de inactividad al actualizar
     sessions[sessionID].lastAccessed = moment().format('YYYY-MM-DD HH:mm:ss');
 
     res.status(200).json({
@@ -200,7 +161,6 @@ const formatTime = (totalSeconds) => {
     return `${minutos} minutos ${segundos} segundos`;
 };
 
-// Endpoint /status para verificar el estado de la sesión
 app.get("/status", (req, res) => {
     const sessionID = req.query.sessionID;
     if (!sessionID || !sessions[sessionID]) {
@@ -208,8 +168,6 @@ app.get("/status", (req, res) => {
     }
 
     const resultado = calcularTiempoSesion(sessionID);
-
-    // Si la sesión expiró, devolver error y eliminarla
     if (resultado.error) {
         return res.status(408).json({ message: resultado.error });
     }
@@ -262,13 +220,6 @@ app.get('/sessions', (req, res) => {
         sessions: sessionsWithTimeData, 
     });
 });
-
-
-
-
-
-
-
 app.listen(PORT, ()=>{
     console.log(`Servidor ejecutandose en http://localhost:${PORT}`);
 
